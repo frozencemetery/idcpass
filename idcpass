@@ -1,0 +1,163 @@
+#!/usr/bin/env python3
+
+import json
+import os
+import random
+import subprocess
+import sys
+
+from xsend import xsend
+
+path = os.path.expanduser("~/.idcpass")
+
+# Wrapper to produce more readable output and cleaner diffs
+def jdump(obj, f):
+    return json.dump(obj, f, indent=4, separators=(",", ": "))
+
+def init():
+    if os.path.exists(path):
+        print(f"Error: file already exists at: {path}", file=sys.stderr)
+        exit(1)
+
+    with open(path, "w") as f:
+        jdump({}, f)
+        pass
+    return
+
+def get_db():
+    if not os.path.exists(path):
+        print(f"Error: no database found at: {path}", file=sys.stderr)
+        exit(1)
+
+    with open(path, "r") as f:
+        return json.load(f)
+    pass
+
+def get_prompted(prompt):
+    sys.stdout.write(prompt)
+    sys.stdout.flush()
+    res = sys.stdin.readline()
+    if len(res) > 0 and res[-1] == '\n':
+        res = res[:-1]
+        pass
+    return res
+
+def gen(length, extras):
+    pool = "qwertyuiopasdfghjklzxcvbnm" + extras
+    sysrandom = random.SystemRandom();
+    return ''.join(sysrandom.choices(pool, k=length))
+
+def add():
+    db = get_db()
+    service = get_prompted("Service: ")
+    if len(service) == 0:
+        print("Empty service entry; aborting", file=sys.stderr)
+        exit(1)
+    elif service in db:
+        print("Service already exists; aborting", file=sys.stderr)
+        exit(1)
+
+    username = get_prompted("Username: ")
+    password = get_prompted("Password (blank to generate): ")
+    while len(password) == 0:
+        extras = get_prompted(
+            "Extra characters in pool (beyond lowercase alpha): ")
+        length = int(get_prompted("Length: "))
+        password = gen(length, extras)
+        print(f"generated: {password}")
+        res = get_prompted("Is this okay? (blank for yes): ")
+        if len(res) != 0:
+            password = ""
+            continue
+        pass
+
+    db[service] = {"username": username, "password": password}
+    with open(path, "w") as f:
+        jdump(db, f)
+        pass
+    return
+
+def delete():
+    db = get_db()
+    service = get_prompted("Service: ")
+    if len(service) == 0:
+        print("Empty service entry; aborting", file=sys.stderr)
+        exit(1)
+    elif service not in db:
+        print("Service not found in database; aborting", file=sys.stderr)
+        exit(1)
+    del(db[service])
+    with open(path, "w") as f:
+        jdump(db, f)
+        pass
+    return
+
+def lookup():
+    db = get_db()
+    service = get_prompted("Service: ")
+    if len(service) == 0:
+        print("Empty service entry; aborting", file=sys.stderr)
+        exit(1)
+    elif service not in db:
+        print("Service not found in database; aborting", file=sys.stderr)
+        exit(1)
+
+    print(f"Username: {db[service]['username']}")
+    print(f"Password: {db[service]['password']}")
+    return
+
+def list():
+    db = get_db()
+    print("\n".join(db.keys()))
+    return
+
+def get_dmenu(prompt, items):
+    # subprocess.communicate with input won't close stdin.  Don't know why.
+    cmd = ["dmenu", "-p", prompt]
+    p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                         text=True)
+    p.stdin.write("\n".join(items))
+    p.stdin.close()
+    res = p.stdout.read(-1)
+    return res[:-1] if len(res) > 0 and res[-1] == '\n' else res
+
+def x():
+    db = get_db()
+    service = get_dmenu("Service: ", db.keys())
+    if len(service) == 0:
+        print("Empty service entry; aborting", file=sys.stderr)
+        exit(1)
+    elif service not in db:
+        print("Service not found in database; aborting", file=sys.stderr)
+        exit(1)
+
+    password = db[service]["password"]
+    return xsend(password)
+
+def usage():
+    u = f"Usage: {sys.argv[0]} init|add|lookup|x\n" \
+        "    init: create a new store\n" \
+        "    add: create a new entry in the store\n" \
+        "    delete: remove an entry from the store\n" \
+        "    lookup: text lookup of an entry from the store\n" \
+        "    list: list services present in the store\n" \
+        "    x: lookup an entry with dmenu, then type result using X11\n"
+    print(u, file=sys.stderr)
+    exit(1)
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        exit(usage())
+    elif sys.argv[1] == "init":
+        exit(init())
+    elif sys.argv[1] == "add":
+        exit(add())
+    elif sys.argv[1] == "delete":
+        exit(delete())
+    elif sys.argv[1] == "lookup":
+        exit(lookup())
+    elif sys.argv[1] == "list":
+        exit(list())
+    elif sys.argv[1] == "x":
+        exit(x())
+    exit(usage())
