@@ -6,8 +6,6 @@ import random
 import subprocess
 import sys
 
-from xsend import xsend
-
 path = os.path.expanduser("~/.idcpass")
 
 # Wrapper to produce more readable output and cleaner diffs
@@ -120,6 +118,13 @@ def get_dmenu(prompt, items):
     p.stdin.close()
     res = p.stdout.read(-1)
     return res[:-1] if len(res) > 0 and res[-1] == '\n' else res
+
+def xsend(password):
+    # see note above
+    p = subprocess.Popen("./xfake", stdin=subprocess.PIPE, text=True)
+    p.stdin.write(password)
+    p.stdin.close()
+    return p.wait()
 
 def x():
     db = get_db()
