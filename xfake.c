@@ -114,7 +114,7 @@ int lookup_keycode(Display *dpy, char c, bool *shift) {
         ks = XStringToKeysym("question");
         *shift = true;
     } else {
-        DIE(dpy, "No keysym for %s\n", cs);
+        DIE(dpy, "No keysym for %c\n", c);
     }
 
     return XKeysymToKeycode(dpy, ks);
@@ -126,6 +126,7 @@ int main() {
     Display *dpy = NULL;
     KeySym shift_ks;
     ssize_t ret;
+    const int delay = 1; /* DON'T TOUCH - SEE BELOW */
 
     dpy = XOpenDisplay(":0");
     if (!dpy)
@@ -144,20 +145,26 @@ int main() {
 
         kc = lookup_keycode(dpy, c, &shift);
 
-        if (shift)
-            XTestFakeKeyEvent(dpy, shift_kc, true, 0);
-
-        XTestFakeKeyEvent(dpy, kc, true, 0);
-        XTestFakeKeyEvent(dpy, kc, false, 0);
+        XTestGrabControl(dpy, true);
 
         if (shift)
-            XTestFakeKeyEvent(dpy, shift_kc, false, 0);
+            XTestFakeKeyEvent(dpy, shift_kc, true, delay);
 
-        XSynchronize(dpy, false);
+        XTestFakeKeyEvent(dpy, kc, true, delay);
+        XTestFakeKeyEvent(dpy, kc, false, delay);
+
+        if (shift)
+            XTestFakeKeyEvent(dpy, shift_kc, false, delay);
+
+        /* The combination of delay=1 and XPending/XFlush "seems to work".  With
+         * delay=0, no amount of calls or sleeps I can come up with prevents
+         * input from processing out-of-order in some cases. */
+        /* XPending(dpy); */
         XFlush(dpy);
+
+        XTestGrabControl(dpy, false);
     }
 
     XCloseDisplay(dpy);
-
     exit(0);
 }
