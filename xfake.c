@@ -101,8 +101,8 @@ int lookup_keycode(Display *dpy, char c, bool *shift) {
     } else if (c == ',') {
         ks = XStringToKeysym("comma");
     } else if (c == '<') {
+        /* No shift here; don't know why */
         ks = XStringToKeysym("less");
-        *shift = true;
     } else if (c == '.') {
         ks = XStringToKeysym("period");
     } else if (c == '>') {
