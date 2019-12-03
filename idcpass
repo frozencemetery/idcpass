@@ -19,7 +19,6 @@ def init():
 
     with open(path, "w") as f:
         jdump({}, f)
-        pass
     return
 
 def get_db():
@@ -29,7 +28,6 @@ def get_db():
 
     with open(path, "r") as f:
         return json.load(f)
-    pass
 
 def get_prompted(prompt):
     sys.stdout.write(prompt)
@@ -37,7 +35,6 @@ def get_prompted(prompt):
     res = sys.stdin.readline()
     if len(res) > 0 and res[-1] == '\n':
         res = res[:-1]
-        pass
     return res
 
 def gen(length, extras):
@@ -66,13 +63,10 @@ def add():
         res = get_prompted("Is this okay? (blank for yes): ")
         if len(res) != 0:
             password = ""
-            continue
-        pass
 
     db[service] = {"username": username, "password": password}
     with open(path, "w") as f:
         jdump(db, f)
-        pass
     return
 
 def delete():
@@ -87,7 +81,6 @@ def delete():
     del(db[service])
     with open(path, "w") as f:
         jdump(db, f)
-        pass
     return
 
 def lookup():
@@ -123,10 +116,9 @@ def xsend(password):
     # Try local, fall back to systemwide
     try:
         p = subprocess.Popen("./xfake", stdin=subprocess.PIPE, text=True)
-        pass
     except FileNotFoundError:
         p = subprocess.Popen("xfake", stdin=subprocess.PIPE, text=True)
-        pass
+
     p.stdin.write(password)
     p.stdin.close()
     return p.wait()
