@@ -37,11 +37,21 @@ def get_prompted(prompt):
         res = res[:-1]
     return res
 
-def gen(length, extras):
+def gen(length, cd):
+    sysrandom = random.SystemRandom()
+    cd.append((0, "qwertyuiopasdfghjklzxcvbnm"))
     while True:
-        pool = "qwertyuiopasdfghjklzxcvbnm" + extras
-        sysrandom = random.SystemRandom();
-        password = ''.join(sysrandom.choices(pool, k=length))
+        total = 0
+        p = []
+        for n, pool in reversed(sorted(cd)):
+            total += n
+            if n == 0:
+                n = length - total
+
+            p += sysrandom.choices(pool, k=n)
+
+        sysrandom.shuffle(p)
+        password = ''.join(p)
         print(f"generated: {password}")
         res = get_prompted("Is this okay? (blank for yes): ")
         if len(res) == 0:
@@ -61,10 +71,17 @@ def add():
     password = get_prompted("Password (blank to generate): ")
 
     if len(password) == 0:
-        extras = get_prompted(
-            "Extra characters in pool (beyond lowercase alpha): ")
-        length = int(get_prompted("Length: "))
-        password = gen(length, extras)
+        cd = []
+        while True:
+            print("idcpass defaults to lowercase alpha.")
+            cc = get_prompted("Define extra character class (blank when done): ")
+            if len(cc) == 0:
+                break
+            num = int(get_prompted("Number from class: "))
+            cd.append((num, cc))
+
+        length = int(get_prompted("Total length: "))
+        password = gen(length, cd)
 
     db[service] = {"username": username, "password": password}
     with open(path, "w") as f:
