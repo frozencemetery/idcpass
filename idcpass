@@ -38,9 +38,14 @@ def get_prompted(prompt):
     return res
 
 def gen(length, extras):
-    pool = "qwertyuiopasdfghjklzxcvbnm" + extras
-    sysrandom = random.SystemRandom();
-    return ''.join(sysrandom.choices(pool, k=length))
+    while True:
+        pool = "qwertyuiopasdfghjklzxcvbnm" + extras
+        sysrandom = random.SystemRandom();
+        password = ''.join(sysrandom.choices(pool, k=length))
+        print(f"generated: {password}")
+        res = get_prompted("Is this okay? (blank for yes): ")
+        if len(res) == 0:
+            return password
 
 def add():
     db = get_db()
@@ -54,15 +59,12 @@ def add():
 
     username = get_prompted("Username: ")
     password = get_prompted("Password (blank to generate): ")
-    while len(password) == 0:
+
+    if len(password) == 0:
         extras = get_prompted(
             "Extra characters in pool (beyond lowercase alpha): ")
         length = int(get_prompted("Length: "))
         password = gen(length, extras)
-        print(f"generated: {password}")
-        res = get_prompted("Is this okay? (blank for yes): ")
-        if len(res) != 0:
-            password = ""
 
     db[service] = {"username": username, "password": password}
     with open(path, "w") as f:
