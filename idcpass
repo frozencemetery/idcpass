@@ -10,7 +10,7 @@ path = os.path.expanduser("~/.idcpass")
 
 # Wrapper to produce more readable output and cleaner diffs
 def jdump(obj, f):
-    return json.dump(obj, f, indent=4, separators=(",", ": "))
+    return json.dump(obj, f, indent=4, separators=(",", ": "), sort_keys=True)
 
 def init():
     if os.path.exists(path):
