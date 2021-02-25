@@ -171,13 +171,13 @@ if __name__ == "__main__":
         exit(usage())
     elif sys.argv[1] == "init":
         exit(init())
-    elif sys.argv[1] == "add":
+    elif sys.argv[1] in ["add", "create", "new"]:
         exit(add())
-    elif sys.argv[1] == "delete":
+    elif sys.argv[1] in ["delete", "del", "remove", "rm"]:
         exit(delete())
     elif sys.argv[1] == "lookup":
         exit(lookup())
-    elif sys.argv[1] == "list":
+    elif sys.argv[1] in ["list", "ls"]:
         exit(list())
     elif sys.argv[1] == "x":
         exit(x())
