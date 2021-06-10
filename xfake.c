@@ -130,6 +130,8 @@ int main() {
 
     dpy = XOpenDisplay(":0");
     if (!dpy)
+        dpy = XOpenDisplay(":1");
+    if (!dpy)
         DIE(dpy, "Failed to open display\n");
 
     shift_ks = XStringToKeysym("Shift_L");
