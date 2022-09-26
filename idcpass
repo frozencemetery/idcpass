@@ -39,6 +39,10 @@ def get_prompted(prompt: str) -> str:
         res = res[:-1]
     return res
 
+def get_int(prompt: str) -> int:
+    res = get_prompted(prompt)
+    return int(res) if len(res) > 0 else 0
+
 def gen(length: int, cd: List[Tuple[int, str]]) -> str:
     sysrandom = random.SystemRandom()
     cd.append((0, "qwertyuiopasdfghjklzxcvbnm"))
@@ -75,24 +79,25 @@ def add() -> None:
     if len(password) == 0:
         cd = []
         print("idcpass defaults to lowercase alpha.")
-        n = get_prompted("Number uppercase (blank for 0): ")
-        if len(n) != 0:
-            cd.append((int(n), "QWERTYUIOPASDFGHJKLZXCVBNM"))
-        n = get_prompted("Number numbers (blank for 0): ")
-        if len(n) != 0:
-            cd.append((int(n), "1234567890"))
-        n = get_prompted("Number symbols (blank for 0): ")
-        if len(n) != 0:
-            cd.append((int(n), "`-=~!@#$%^&*()_+[]\{}|;':\",./<>?"))
+        n = get_int("Number uppercase (blank for 0): ")
+        if n != 0:
+            cd.append((n, "QWERTYUIOPASDFGHJKLZXCVBNM"))
+        n = get_int("Number numbers (blank for 0): ")
+        if n != 0:
+            cd.append((n, "1234567890"))
+        n = get_int("Number symbols (blank for 0): ")
+        if n != 0:
+            cd.append((n, "`-=~!@#$%^&*()_+[]\{}|;':\",./<>?"))
         while True:
             cc = get_prompted(
                 "Define extra character class (blank when done): ")
             if len(cc) == 0:
                 break
-            num = int(get_prompted("Number from class: "))
-            cd.append((num, cc))
+            n = get_int("Number from class: ")
+            if n > 0:
+                cd.append((n, cc))
 
-        length = int(get_prompted("Total length: "))
+        length = get_int("Total length: ")
         password = gen(length, cd)
 
     db[service] = {"username": username, "password": password}
