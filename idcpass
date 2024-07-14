@@ -87,7 +87,9 @@ def add() -> None:
             cd.append((n, "1234567890"))
         n = get_int("Number symbols (blank for 0): ")
         if n != 0:
-            cd.append((n, "`-=~!@#$%^&*()_+[]\{}|;':\",./<>?"))
+            # backslash is not included - there's basically no chance the
+            # other end handles it correctly.
+            cd.append((n, "`-=~!@#$%^&*()_+[]{}|;':\",./<>?"))
         while True:
             cc = get_prompted(
                 "Define extra character class (blank when done): ")
